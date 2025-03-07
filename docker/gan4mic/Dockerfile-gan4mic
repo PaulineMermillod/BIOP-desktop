@@ -1,0 +1,26 @@
+ARG BASE_IMAGE=0.1.0
+FROM biop/biop-vnc-base:${BASE_IMAGE}
+
+USER root
+
+
+
+
+COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
+RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
+    && conda clean --all -f -y \
+    && conda env export -n "biop" \ 
+    && rm /tmp/env_gan4mic.yml 
+
+
+    
+RUN chmod -R a+rwX /home/biop/ \
+&& chown -R biop:biop /home/biop/
+
+
+#################################################################
+# Container start
+USER biop
+WORKDIR /home/biop
+ENTRYPOINT ["/usr/local/bin/jupyter"]
+CMD ["lab", "--allow-root", "--ip=*", "--port=8888", "--no-browser", "--NotebookApp.token=''", "--NotebookApp.allow_origin='*'", "--notebook-dir=/home/biop"]
