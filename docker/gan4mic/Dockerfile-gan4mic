@@ -3,26 +3,26 @@ FROM biop/biop-vnc-base:${BASE_IMAGE}
 
 USER root
 
-COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
-RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
-    && conda clean --all -f -y \
-    && conda env export -n "biop" \ 
-    && rm /tmp/env_gan4mic.yml 
-
 #install VS code
 RUN apt-get update -y \
     && apt upgrade -y \
+    # download vscode deb package
+    && wget https://go.microsoft.com/fwlink/?LinkID=760868 -O /tmp/code.deb \
+    # install vscode
+    && apt install -y /tmp/code.deb \
+    && rm /tmp/code.deb \
     && apt-get autoremove --purge \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/* \
     && find /var/log -type f -exec cp /dev/null \{\} \;
 
-    # download vscode deb package
-RUN wget https://go.microsoft.com/fwlink/?LinkID=760868 -O /tmp/code.deb \
-    # install vscode
-    && apt install -y /tmp/code.deb \
-    && rm /tmp/code.deb
+#make an environment
+COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
+RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
+    && conda clean --all -f -y \
+    && conda env export -n "biop" \ 
+    && rm /tmp/env_gan4mic.yml 
 
     
 RUN chmod -R a+rwX /home/biop/ \
