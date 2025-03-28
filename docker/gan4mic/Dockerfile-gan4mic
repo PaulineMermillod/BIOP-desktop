@@ -72,6 +72,12 @@ RUN source activate cellpose \
     && conda install ipykernel -y \
     && conda deactivate
 
+#add gan4mic kernel
+RUN source activate gan4mic \
+&& python -m ipykernel install --user --name gan4mic --display-name "Python (gan4mic)" \
+&& conda deactivate
+
+
 #################################################################
 # Install samapi
 #
