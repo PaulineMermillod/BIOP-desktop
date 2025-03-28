@@ -3,7 +3,9 @@ FROM biop/biop-vnc-base:${BASE_IMAGE}
 ARG BASE_IMAGE=0.1.0 
 ARG ALIAS=biop/
 ARG CELLPOSE_VERSION=2.2.2
+ARG QUPATH_VERSION=v0.5.1-04
 ARG FIJI_VERSION=20250317
+FROM ${ALIAS}biop-qupath:${QUPATH_VERSION} AS qupath-image
 FROM ${ALIAS}biop-cellpose:${CELLPOSE_VERSION} AS cellpose-image
 FROM ${ALIAS}biop-fiji:${FIJI_VERSION} AS fiji-image
 FROM ${ALIAS}biop-vnc-base:${BASE_IMAGE}
@@ -31,7 +33,28 @@ RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
     && conda env export -n "biop" \ 
     && rm /tmp/env_gan4mic.yml 
 
+################################################
+# # Install QuPath 
+
+COPY --from=qupath-image /opt/QuPath /opt/QuPath
+COPY --from=qupath-image /home/biop/Desktop/QuPath.desktop  /home/biop/Desktop/QuPath.desktop
+
+# install Extensions
+COPY --from=qupath-image /opt/QuPath/QuPath_Common_Data_0.5 /opt/QuPath/QuPath_Common_Data_0.5  
+RUN chown -R biop:biop /opt/QuPath/QuPath_Common_Data_0.5 \
+    && chmod -R a+rwx /opt/QuPath/QuPath_Common_Data_0.5
     
+# Prepare to set QP_prefs 
+COPY QuPath/QuPath_setPaths.groovy /home/biop/tmp/QuPath_setPaths.groovy
+COPY QuPath/qp_prefs.xml /home/biop/tmp/qp_prefs.xml
+RUN chown -R biop:biop /home/biop/tmp
+USER biop
+# here we import prefs in QuPath so we can use the extensions at the first start ! 
+RUN /opt/QuPath/bin/QuPath script '/home/biop/tmp/QuPath_setPaths.groovy' 
+# set back to root to continue installation
+USER root
+RUN rm -rf /home/biop/tmp 
+
 #######################################
 
 # Install cellpose and models
