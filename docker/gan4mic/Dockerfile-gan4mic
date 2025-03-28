@@ -5,6 +5,9 @@ ARG ALIAS=biop/
 ARG CELLPOSE_VERSION=2.2.2
 ARG QUPATH_VERSION=v0.5.1-04
 ARG FIJI_VERSION=20250317
+ARG SAMAPI_VERSION=0.4.0
+
+FROM ${ALIAS}biop-samapi:${SAMAPI_VERSION} AS samapi-image
 FROM ${ALIAS}biop-qupath:${QUPATH_VERSION} AS qupath-image
 FROM ${ALIAS}biop-cellpose:${CELLPOSE_VERSION} AS cellpose-image
 FROM ${ALIAS}biop-fiji:${FIJI_VERSION} AS fiji-image
@@ -63,6 +66,24 @@ COPY --from=cellpose-image /home/biop/.cellpose/models/ /home/biop/.cellpose/mod
 RUN chmod -R a+rwX /home/biop/.cellpose  
 
 ENV PATH=$PATH:/opt/conda/bin 
+
+#################################################################
+# Install samapi
+#
+# add lib for wsl 
+ENV LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH
+# add samapi env 
+COPY --from=samapi-image /opt/conda/envs/samapi /opt/conda/envs/samapi
+# add models for samapi
+COPY --from=samapi-image /home/biop/.samapi/ /home/biop/.samapi/
+RUN chown -R biop:biop /home/biop/.samapi/ \
+    && chmod -R a+rwX /home/biop/.samapi/ 
+# create shortcut to start SAMAPI 
+# because it's a QuPath extension I add (ico & sh) to the QuPath Common Data folder
+# but we could also have them in /opt/samapi , as we have for empanada (see below)
+COPY --from=samapi-image /opt/samapi/ /opt/samapi/
+COPY --from=samapi-image /home/biop/Desktop/samapi.desktop /home/biop/Desktop/samapi.desktop
+
 
 # Install Fiji
 COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
