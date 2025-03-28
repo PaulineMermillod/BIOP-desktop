@@ -1,5 +1,4 @@
-ARG BASE_IMAGE=0.1.0
-FROM biop/biop-vnc-base:${BASE_IMAGE}
+#passer à la version 0.2.0
 ARG BASE_IMAGE=0.1.0 
 ARG ALIAS=biop/
 ARG CELLPOSE_VERSION=2.2.2
@@ -44,6 +43,7 @@ RUN  printf  'yes | code' > /opt/icons/start_code.sh \
     && chown -R biop:biop /home/biop \
     && chmod +x /home/biop/Desktop/code.desktop \
     && chmod +x /opt/icons/start_code.sh
+
 ################################################
 # # Install QuPath 
 
@@ -122,9 +122,9 @@ USER root
 COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
 COPY --from=fiji-image /home/biop/Desktop/Fiji.desktop /home/biop/Desktop/Fiji.desktop
 RUN chmod -R a+rwX /opt/Fiji.app/ImageJ-linux64
+
 RUN chmod -R a+rwX /home/biop/ \
     && chown -R biop:biop /home/biop/
-&& chown -R biop:biop /home/biop/
 
 
 #################################################################
