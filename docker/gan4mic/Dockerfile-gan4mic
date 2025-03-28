@@ -15,6 +15,7 @@ FROM ${ALIAS}biop-vnc-base:${BASE_IMAGE}
 
 USER root
 
+#############################################
 #install VS code
 RUN apt-get update -y \
     && apt upgrade -y \
@@ -36,6 +37,13 @@ RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
     && conda env export -n "biop" \ 
     && rm /tmp/env_gan4mic.yml 
 
+#add icon on desktop
+COPY gan4mic/vscode.png /opt/icons/vscode.png
+RUN  printf  'yes | code' > /opt/icons/start_code.sh \
+    && printf '[Desktop Entry]\nVersion=1.98.0\nName=VScode\nType=Application\nExec=/opt/icons/start_code.sh\nTryExec=/opt/icons/start_code.sh\nTerminal=false\nStartupNotify=true\nMimeType=image/*;\nIcon=/opt/icons/vscode.png\nStartupWMClass=code\n' > /home/biop/Desktop/code.desktop \
+    && chown -R biop:biop /home/biop \
+    && chmod +x /home/biop/Desktop/code.desktop \
+    && chmod +x /opt/icons/start_code.sh
 ################################################
 # # Install QuPath 
 
@@ -95,6 +103,20 @@ RUN chown -R biop:biop /home/biop/.samapi/ \
 COPY --from=samapi-image /opt/samapi/ /opt/samapi/
 COPY --from=samapi-image /home/biop/Desktop/samapi.desktop /home/biop/Desktop/samapi.desktop
 
+
+USER biop
+
+#install VScode extensions
+#COPY gan4mic/extensions.txt /extensions/extensions.txt
+RUN yes | code --install-extension ms-python.python
+RUN yes | code --install-extension ms-toolsai.jupyter 
+
+RUN source activate cellpose \
+    && python -m ipykernel install --user --name cellpose --display-name "Python (cellpose)" \
+    && conda deactivate
+
+
+USER root 
 
 # Install Fiji
 COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
