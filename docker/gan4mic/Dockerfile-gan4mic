@@ -1,5 +1,10 @@
 ARG BASE_IMAGE=0.1.0
 FROM biop/biop-vnc-base:${BASE_IMAGE}
+ARG BASE_IMAGE=0.1.0 
+ARG ALIAS=biop/
+ARG FIJI_VERSION=20250317
+FROM ${ALIAS}biop-fiji:${FIJI_VERSION} AS fiji-image
+FROM ${ALIAS}biop-vnc-base:${BASE_IMAGE}
 
 USER root
 
@@ -25,6 +30,10 @@ RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
     && rm /tmp/env_gan4mic.yml 
 
     
+# Install Fiji
+COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
+COPY --from=fiji-image /home/biop/Desktop/Fiji.desktop /home/biop/Desktop/Fiji.desktop
+RUN chmod -R a+rwX /opt/Fiji.app/ImageJ-linux64
 RUN chmod -R a+rwX /home/biop/ \
 && chown -R biop:biop /home/biop/
 
