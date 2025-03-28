@@ -67,6 +67,11 @@ RUN chmod -R a+rwX /home/biop/.cellpose
 
 ENV PATH=$PATH:/opt/conda/bin 
 
+#adds cellpose kernel
+RUN source activate cellpose \
+    && conda install ipykernel -y \
+    && conda deactivate
+
 #################################################################
 # Install samapi
 #
