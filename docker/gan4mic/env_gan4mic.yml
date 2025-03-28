@@ -3,10 +3,12 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+# for conda install
   - python=3.10
   - seaborn
   - ipykernel
   - pip
+  # for pipinstall
   #- pip:
   #    - scikit-image
   #    - dask
