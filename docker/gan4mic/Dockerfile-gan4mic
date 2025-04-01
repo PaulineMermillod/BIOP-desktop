@@ -29,13 +29,6 @@ RUN apt-get update -y \
     && rm -rf /tmp/* \
     && find /var/log -type f -exec cp /dev/null \{\} \;
 
-#make an environment
-COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
-RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
-    && conda clean --all -f -y \
-    && conda env export -n "biop" \ 
-    && rm /tmp/env_gan4mic.yml 
-
 #add icon on desktop
 COPY gan4mic/vscode.png /opt/icons/vscode.png
 RUN  printf  'yes | code' > /opt/icons/start_code.sh \
@@ -74,6 +67,12 @@ COPY --from=cellpose-image /home/biop/.cellpose/models/ /home/biop/.cellpose/mod
 RUN chmod -R a+rwX /home/biop/.cellpose  
 
 ENV PATH=$PATH:/opt/conda/bin 
+
+#make a gan4mic environment
+COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
+RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
+    && conda clean --all -f -y \
+    && rm /tmp/env_gan4mic.yml 
 
 #adds cellpose kernel
 RUN source activate cellpose \
