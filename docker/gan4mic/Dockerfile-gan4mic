@@ -83,6 +83,12 @@ RUN source activate cellpose \
 RUN source activate gan4mic \
 && python -m ipykernel install --user --name gan4mic --display-name "Python (gan4mic)" \
 && conda deactivate
+#install pix2pix envrionment + add a kernel
+COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
+RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
+    #&& conda clean --all -f -y \
+    && rm /tmp/env_pix2pix.yml 
+
 
 
 #################################################################
