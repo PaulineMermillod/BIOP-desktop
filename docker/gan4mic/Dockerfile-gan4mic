@@ -1,10 +1,10 @@
-#passer à la version 0.2.0
-ARG BASE_IMAGE=0.1.0 
+ARG BASE_IMAGE=0.2.2
 ARG ALIAS=biop/
-ARG CELLPOSE_VERSION=2.2.2
+
+ARG CELLPOSE_VERSION=3.1.1.1
 ARG QUPATH_VERSION=v0.5.1-04
-ARG FIJI_VERSION=20250317
-ARG SAMAPI_VERSION=0.4.0
+ARG FIJI_VERSION=20250319
+ARG SAMAPI_VERSION=0.6.1
 
 FROM ${ALIAS}biop-samapi:${SAMAPI_VERSION} AS samapi-image
 FROM ${ALIAS}biop-qupath:${QUPATH_VERSION} AS qupath-image
@@ -12,89 +12,24 @@ FROM ${ALIAS}biop-cellpose:${CELLPOSE_VERSION} AS cellpose-image
 FROM ${ALIAS}biop-fiji:${FIJI_VERSION} AS fiji-image
 FROM ${ALIAS}biop-vnc-base:${BASE_IMAGE}
 
+ENV PATH=$PATH:/opt/conda/bin 
+
 USER root
-
-#############################################
-#install VS code
-RUN apt-get update -y \
-    && apt upgrade -y \
-    # download vscode deb package
-    && wget https://go.microsoft.com/fwlink/?LinkID=760868 -O /tmp/code.deb \
-    # install vscode
-    && apt install -y /tmp/code.deb \
-    && rm /tmp/code.deb \
-    && apt-get autoremove --purge \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* \
-    && find /var/log -type f -exec cp /dev/null \{\} \;
-
-#add icon on desktop
-COPY gan4mic/vscode.png /opt/icons/vscode.png
-RUN  printf  'yes | code' > /opt/icons/start_code.sh \
-    && printf '[Desktop Entry]\nVersion=1.98.0\nName=VScode\nType=Application\nExec=/opt/icons/start_code.sh\nTryExec=/opt/icons/start_code.sh\nTerminal=false\nStartupNotify=true\nMimeType=image/*;\nIcon=/opt/icons/vscode.png\nStartupWMClass=code\n' > /home/biop/Desktop/code.desktop \
-    && chown -R biop:biop /home/biop \
-    && chmod +x /home/biop/Desktop/code.desktop \
-    && chmod +x /opt/icons/start_code.sh
 
 ################################################
 # # Install QuPath 
-
 COPY --from=qupath-image /opt/QuPath /opt/QuPath
 COPY --from=qupath-image /home/biop/Desktop/QuPath.desktop  /home/biop/Desktop/QuPath.desktop
 
-# install Extensions
-COPY --from=qupath-image /opt/QuPath/QuPath_Common_Data_0.5 /opt/QuPath/QuPath_Common_Data_0.5  
-RUN chown -R biop:biop /opt/QuPath/QuPath_Common_Data_0.5 \
-    && chmod -R a+rwx /opt/QuPath/QuPath_Common_Data_0.5
-    
-# Prepare to set QP_prefs 
-COPY QuPath/QuPath_setPaths.groovy /home/biop/tmp/QuPath_setPaths.groovy
-COPY QuPath/qp_prefs.xml /home/biop/tmp/qp_prefs.xml
-RUN chown -R biop:biop /home/biop/tmp
-USER biop
-# here we import prefs in QuPath so we can use the extensions at the first start ! 
-RUN /opt/QuPath/bin/QuPath script '/home/biop/tmp/QuPath_setPaths.groovy' 
-# set back to root to continue installation
-USER root
-RUN rm -rf /home/biop/tmp 
+#################################################################
+# Install Fiji
+COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
+COPY fiji/Fiji_setWrappersPaths.groovy /home/biop/tmp/Fiji_setWrappersPaths.groovy
 
-#######################################
-
+##################################################################
 # Install cellpose and models
 COPY --from=cellpose-image  /opt/conda/envs/cellpose /opt/conda/envs/cellpose
 COPY --from=cellpose-image /home/biop/.cellpose/models/ /home/biop/.cellpose/models/
-RUN chmod -R a+rwX /home/biop/.cellpose  
-
-ENV PATH=$PATH:/opt/conda/bin 
-
-#make a gan4mic environment
-COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
-RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
-    && conda clean --all -f -y \
-    && rm /tmp/env_gan4mic.yml 
-
-#adds cellpose kernel
-# RUN source activate cellpose \
-#     && conda install ipykernel -y \
-#     && conda deactivate
-
-#add gan4mic kernel
-RUN source activate gan4mic \
-    && conda install ipykernel -y \
-    && python -m ipykernel install --user --name gan4mic --display-name "Python (gan4mic)" \
-    && conda deactivate
-
-#install pix2pix envrionment + add a kernel
-COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
-RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
-    #&& conda clean --all -f -y \
-    && rm /tmp/env_pix2pix.yml 
-
-RUN source activate pix2pix \
-    && python -m ipykernel install --user --name pix2pix --display-name "Python (pix2pix)" \
-    && conda deactivate
-
 
 #################################################################
 # Install samapi
@@ -105,36 +40,44 @@ ENV LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH
 COPY --from=samapi-image /opt/conda/envs/samapi /opt/conda/envs/samapi
 # add models for samapi
 COPY --from=samapi-image /home/biop/.samapi/ /home/biop/.samapi/
-RUN chown -R biop:biop /home/biop/.samapi/ \
-    && chmod -R a+rwX /home/biop/.samapi/ 
-# create shortcut to start SAMAPI 
-# because it's a QuPath extension I add (ico & sh) to the QuPath Common Data folder
-# but we could also have them in /opt/samapi , as we have for empanada (see below)
-COPY --from=samapi-image /opt/samapi/ /opt/samapi/
-COPY --from=samapi-image /home/biop/Desktop/samapi.desktop /home/biop/Desktop/samapi.desktop
 
-
-USER biop
-
+######################################################################
+USER biop 
 #install VScode extensions
-#COPY gan4mic/extensions.txt /extensions/extensions.txt
 RUN yes | code --install-extension ms-python.python
 RUN yes | code --install-extension ms-toolsai.jupyter 
+USER root
 
-RUN source activate cellpose \
-    && python -m ipykernel install --user --name cellpose --display-name "Python (cellpose)" \
-    && conda deactivate
+# #################################################################
+# # Jupyter kernels 
 
+# #make a gan4mic environment
+COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
+RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
+    && conda clean --all -f -y \
+    && rm /tmp/env_gan4mic.yml 
 
-USER root 
+# # #add gan4mic kernel
+# RUN source activate gan4mic \
+#     && conda install ipykernel -y \
+#     && python -m ipykernel install --user --name gan4mic --display-name "Python (gan4mic)" \
+#     && conda deactivate
 
-# Install Fiji
-COPY --from=fiji-image /opt/Fiji.app /opt/Fiji.app
-COPY --from=fiji-image /home/biop/Desktop/Fiji.desktop /home/biop/Desktop/Fiji.desktop
-RUN chmod -R a+rwX /opt/Fiji.app/ImageJ-linux64
+# #install pix2pix envrionment + add a kernel
+COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
+RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
+    && rm /tmp/env_pix2pix.yml 
 
-RUN chmod -R a+rwX /home/biop/ \
-    && chown -R biop:biop /home/biop/
+# RUN source activate pix2pix \
+#     && python -m ipykernel install --user --name pix2pix --display-name "Python (pix2pix)" \
+#     && conda deactivate
+
+# # #install cellpose envrionment
+# RUN source activate cellpose \
+#     && conda install ipykernel -y \
+#     && python -m ipykernel install --user --name cellpose --display-name "Python (cellpose)" \
+#     && conda deactivate
+
 
 # # To make the different conda env available in jupyter
 COPY jupyter/kernels/ /home/biop/.local/share/jupyter/kernels/
@@ -143,10 +86,46 @@ RUN rm -r -f /home/biop/.local/share/jupyter/kernels/brainrender \
     && rm -r -f /home/biop/.local/share/jupyter/kernels/devbio \
     && rm -r -f /home/biop/.local/share/jupyter/kernels/empanada \
     && rm -r -f /home/biop/.local/share/jupyter/kernels/omnipose 
+    
+# # Make icons on desktop
+COPY icons/* /opt/icons/
+# # to start fiji
+RUN printf '[Desktop Entry]\nVersion=1.0\nName=ImageJ\nGenericName=ImageJ\nX-GNOME-FullName=ImageJ\nComment=Scientific Image Analysis\nType=Application\nCategories=Education;Science;ImageProcessing;\nExec=/opt/Fiji.app/ImageJ-linux64 %F\nTryExec=/opt/Fiji.app/ImageJ-linux64\nTerminal=false\nStartupNotify=true\nMimeType=image/*;\nIcon=/opt/Fiji.app/images/icon.png\nStartupWMClass=net-imagej-launcher-ClassLauncher\n' > /home/biop/Desktop/Fiji.desktop \
+# # to start QuPath
+    && printf '[Desktop Entry]\nVersion=0.5.1\nName=qupath\nGenericName=QuPath\nX-GNOME-FullName=QuPath\nComment=Scientific Image Analysis\nType=Application\nCategories=Education;Science;ImageProcessing;\nExec=/opt/QuPath/bin/QuPath\nTryExec=/opt/QuPath/bin/QuPath\nTerminal=false\nStartupNotify=true\nIcon=/opt/QuPath/lib/QuPath.png\nStartupWMClass=QuPath' > /home/biop/Desktop/QuPath.desktop \
+# # to start SAMAPI
+    && printf 'source activate samapi\npython -m uvicorn samapi.main:app --workers 2\n\$ read -rsp \$"Press enter to continue..."' > /opt/icons/start_samapi.sh \
+    && printf '[Desktop Entry]\nVersion=0.6.1\nName=samapi\nGenericName=samapi\nX-GNOME-FullName=samapi\nComment=Scientific Image Analysis\nType=Application\nCategories=Education;Science;ImageProcessing;\nExec=/opt/icons/start_samapi.sh\nTryExec=/opt/icons/start_samapi.sh\nTerminal=true\nStartupNotify=true\nIcon=/opt/icons/samapi.ico\nStartupWMClass=samapi\n' > /home/biop/Desktop/samapi.desktop \
+# # set permissions
+    && chown -R biop:biop   /home/biop/             /opt/icons/ \
+    && chmod -R a+rwx       /home/biop/Desktop/     /opt/icons/ \
+#  # waiting for RunAI patch
+    && ln -s /usr/lib/x86_64-linux-gnu/libcuda.so.1 /usr/lib/x86_64-linux-gnu/libcuda.so
+
+# ##################################################################
+# # Prepare to set QP_prefs 
+COPY QuPath/prefs/QuPath_setPaths.groovy /home/biop/tmp/QuPath_setPaths.groovy
+COPY QuPath/prefs/qp_prefs.xml /home/biop/tmp/qp_prefs.xml
+RUN chown -R biop:biop /home/biop/tmp
+
+###################################################################
+# #permissions
+# # set chown and chmod for all necessary folders
+RUN chown -R biop:biop /opt/QuPath/QuPath_Common_Data_0.5 \
+    && chmod -R a+rwx /opt/QuPath/QuPath_Common_Data_0.5 \
+    && chmod a+rwx /opt/QuPath/bin/QuPath \
+    && chmod -R a+rwx /home/biop/.cellpose \
+    && chown -R biop:biop /home/biop/.samapi/ \
+    && chmod -R a+rwx /home/biop/.samapi/ \
+    && chown biop:biop /opt/Fiji.app/ \
+    && chmod -R a+rwx /opt/Fiji.app/ 
 
 #################################################################
 # Container start
 USER biop
+RUN /opt/QuPath/bin/QuPath script '/home/biop/tmp/QuPath_setPaths.groovy' \
+     && /opt/Fiji.app/ImageJ-linux64 --headless --run /home/biop/tmp/Fiji_setWrappersPaths.groovy \
+     && rm -rf /home/biop/tmp
 WORKDIR /home/biop
 ENTRYPOINT ["/usr/local/bin/jupyter"]
 CMD ["lab", "--allow-root", "--ip=*", "--port=8888", "--no-browser", "--NotebookApp.token=''", "--NotebookApp.allow_origin='*'", "--notebook-dir=/home/biop"]
