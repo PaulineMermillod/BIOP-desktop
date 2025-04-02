@@ -136,6 +136,13 @@ RUN chmod -R a+rwX /opt/Fiji.app/ImageJ-linux64
 RUN chmod -R a+rwX /home/biop/ \
     && chown -R biop:biop /home/biop/
 
+# # To make the different conda env available in jupyter
+COPY jupyter/kernels/ /home/biop/.local/share/jupyter/kernels/
+#remove other kernels 
+RUN rm -r -f /home/biop/.local/share/jupyter/kernels/brainrender \
+    && rm -r -f /home/biop/.local/share/jupyter/kernels/devbio \
+    && rm -r -f /home/biop/.local/share/jupyter/kernels/empanada \
+    && rm -r -f /home/biop/.local/share/jupyter/kernels/omnipose 
 
 #################################################################
 # Container start
