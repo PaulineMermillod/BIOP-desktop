@@ -1,0 +1,14 @@
+{
+ "argv": [
+  "/opt/conda/envs/pix2pix/bin/python",
+  "-m",
+  "ipykernel_launcher",
+  "-f",
+  "{connection_file}"
+ ],
+ "display_name": "pix2pix",
+ "language": "python",
+ "metadata": {
+  "debugger": true
+ }
+}
