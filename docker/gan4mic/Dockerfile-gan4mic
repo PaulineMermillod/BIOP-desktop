@@ -50,33 +50,10 @@ USER root
 
 # #################################################################
 # # Jupyter kernels 
-
-# #make a gan4mic environment
-COPY gan4mic/env_gan4mic.yml /tmp/env_gan4mic.yml
-RUN conda env update -n gan4mic -f /tmp/env_gan4mic.yml \
-    && conda clean --all -f -y \
-    && rm /tmp/env_gan4mic.yml 
-
-# # #add gan4mic kernel
-# RUN source activate gan4mic \
-#     && conda install ipykernel -y \
-#     && python -m ipykernel install --user --name gan4mic --display-name "Python (gan4mic)" \
-#     && conda deactivate
-
 # #install pix2pix envrionment + add a kernel
 COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
 RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
     && rm /tmp/env_pix2pix.yml 
-
-# RUN source activate pix2pix \
-#     && python -m ipykernel install --user --name pix2pix --display-name "Python (pix2pix)" \
-#     && conda deactivate
-
-# # #install cellpose envrionment
-# RUN source activate cellpose \
-#     && conda install ipykernel -y \
-#     && python -m ipykernel install --user --name cellpose --display-name "Python (cellpose)" \
-#     && conda deactivate
 
 
 # # To make the different conda env available in jupyter
