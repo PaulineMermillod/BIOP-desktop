@@ -1,5 +1,5 @@
 ARG ALIAS=biop/
-ARG BASE_IMAGE=0.2.2
+ARG BASE_IMAGE=0.2.1
 FROM ${ALIAS}biop-vnc-base:${BASE_IMAGE}
 
 USER root
@@ -9,7 +9,6 @@ COPY cellpose/env_cellpose.yml /tmp/env_cellpose.yml
 RUN conda env update -n cellpose -f /tmp/env_cellpose.yml \
     && conda clean --all -f -y \
     && conda env export -n "biop" \ 
-    && conda install ipykernel \ 
     && rm /tmp/env_cellpose.yml 
 
 # download models
@@ -22,7 +21,6 @@ RUN source activate cellpose \
 USER root
 RUN chmod -R a+rwX /home/biop/ \
     && chown -R biop:biop /home/biop/
-
 
 #################################################################
 # Container start
