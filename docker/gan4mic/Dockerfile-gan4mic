@@ -55,6 +55,9 @@ COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
 RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
     && rm /tmp/env_pix2pix.yml 
 
+RUN source activate cellpose \
+     && python -m pip install ipykernel \
+     && conda deactivate
 
 # # To make the different conda env available in jupyter
 COPY jupyter/kernels/ /home/biop/.local/share/jupyter/kernels/

@@ -1,0 +1,9 @@
+name : "temp"
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - ipykernel
+  - pip:
+      - cellpose==3.1.1.1

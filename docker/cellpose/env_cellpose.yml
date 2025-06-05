@@ -1,12 +1,9 @@
 name: "cellpose"
 channels:
-  - conda-forge
+  - pytorch
   - defaults
 dependencies:
   - python=3.10
+  - ipykernel
   - pip
-  - pip:
-      - cellpose==3.1.1.1
-      - scikit-image # for Quality check when training models
-      - wget # for downloading models
-prefix: "/opt/conda/envs/cellpose"
+#prefix: "/opt/conda/envs/cellpose"
