@@ -55,6 +55,11 @@ COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
 RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
     && rm /tmp/env_pix2pix.yml 
 
+# #install pandas envrionment
+COPY gan4mic/env_pandas.yml /tmp/env_pandas.yml
+RUN conda env create -n pandas -f /tmp/env_pandas.yml \
+    && rm /tmp/env_pandas.yml 
+
 RUN source activate cellpose \
      && python -m pip install ipykernel fill_voids segment anything torchvision typing_extensions==4.11.0\
      && conda deactivate
