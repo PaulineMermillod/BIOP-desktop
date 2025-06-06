@@ -50,13 +50,13 @@ USER root
 
 # #################################################################
 # # Jupyter kernels 
-# #install pix2pix envrionment + add a kernel
+# #install pix2pix envrionment
 COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
 RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
     && rm /tmp/env_pix2pix.yml 
 
 RUN source activate cellpose \
-     && python -m pip install ipykernel \
+     && python -m pip install ipykernel fill_voids segment anything torchvision typing_extensions==4.11.0\
      && conda deactivate
 
 # # To make the different conda env available in jupyter
@@ -98,7 +98,8 @@ RUN chown -R biop:biop /opt/QuPath/QuPath_Common_Data_0.5 \
     && chown -R biop:biop /home/biop/.samapi/ \
     && chmod -R a+rwx /home/biop/.samapi/ \
     && chown biop:biop /opt/Fiji.app/ \
-    && chmod -R a+rwx /opt/Fiji.app/ 
+    && chmod -R a+rwx /opt/Fiji.app/ \
+    && chmod -R a+rwx /opt/conda/envs/pix2pix/lib/python3.8/site-packages/visdom
 
 #################################################################
 # Container start
