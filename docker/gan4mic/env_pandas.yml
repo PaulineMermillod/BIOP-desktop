@@ -1,19 +1,15 @@
 name: pandas
 channels:
   - defaults
-  - https://repo.anaconda.com/pkgs/main
-  - https://repo.anaconda.com/pkgs/r
-  - https://repo.anaconda.com/pkgs/msys2
 dependencies:
-  - ca-certificates=2025.2.25=haa95532_0
-  - openssl=3.0.16=h3f729d1_0
-  - pip=25.1=pyhc872135_2
-  - python=3.9.21=h8205438_1
-  - setuptools=78.1.1=py39haa95532_0
-  - sqlite=3.45.3=h2bbff1b_0
-  - vc=14.42=haa95532_5
-  - vs2015_runtime=14.42.34433=hbfb602d_5
-  - wheel=0.45.1=py39haa95532_0
+  - python=3.9
+  - pip
+  - setuptools
+  - wheel
+  - openssl
+  - sqlite
+  - ca-certificates
+
   - pip:
       - asttokens==3.0.0
       - colorama==0.4.6
@@ -28,7 +24,7 @@ dependencies:
       - jedi==0.19.2
       - jupyter-client==8.6.3
       - jupyter-core==5.8.1
-      - matplotlib-inline==0.1.7
+      - matplotlib
       - nest-asyncio==1.6.0
       - numpy==2.0.2
       - packaging==25.0
@@ -41,7 +37,6 @@ dependencies:
       - pygments==2.19.1
       - python-dateutil==2.9.0.post0
       - pytz==2025.2
-      - pywin32==310
       - pyzmq==26.4.0
       - six==1.17.0
       - stack-data==0.6.3
@@ -51,4 +46,3 @@ dependencies:
       - tzdata==2025.2
       - wcwidth==0.2.13
       - zipp==3.22.0
-prefix: D:\conda\conda-envs\pandas
