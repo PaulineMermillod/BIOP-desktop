@@ -5,3 +5,7 @@ The goal of [BIOP-desktop](https://github.com/BIOP/BIOP-desktop) repository is t
 Please have a look to the  [**github pages** documentating the BIOP-desktop](https://biop.github.io/biop-desktop-doc/) project.
 
 This project is largely inspired from [renku-jupyterlab-vnc](https://github.com/SwissDataScienceCenter/renku-jupyterlab-vnc) for the desktop part and follows its [licensing](https://github.com/BIOP/BIOP-desktop/blob/main/LICENSE).
+
+## Modifications 
+
+This forked repository of BIOP-desktop integers [GANnotation](https://hub.docker.com/r/paulinemermillod/biop-gannotation), a Dockerfile to use GAN tool and perform dataset augmentation im image analysis.
