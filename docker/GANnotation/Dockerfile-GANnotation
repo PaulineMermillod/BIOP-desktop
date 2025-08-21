@@ -51,18 +51,19 @@ USER root
 # #################################################################
 # # Jupyter kernels 
 # #install pix2pix envrionment
-COPY gan4mic/env_pix2pix.yml /tmp/env_pix2pix.yml
+COPY GANnotation/env_pix2pix.yml /tmp/env_pix2pix.yml
 RUN conda env create -n pix2pix -f /tmp/env_pix2pix.yml \
     && rm /tmp/env_pix2pix.yml 
 
 # #install pandas envrionment
-COPY gan4mic/env_pandas.yml /tmp/env_pandas.yml
+COPY GANnotation/env_pandas.yml /tmp/env_pandas.yml
 RUN conda env create -n pandas -f /tmp/env_pandas.yml \
     && rm /tmp/env_pandas.yml 
 
 RUN source activate cellpose \
-     && python -m pip install ipykernel fill_voids segment anything torchvision typing_extensions==4.11.0\
-     && conda deactivate
+#      && python -m pip install ipykernel fill_voids segment anything torchvision typing_extensions==4.11.0\
+      && python -m pip install ipykernel \
+      && conda deactivate
 
 # # To make the different conda env available in jupyter
 COPY jupyter/kernels/ /home/biop/.local/share/jupyter/kernels/
@@ -70,7 +71,9 @@ COPY jupyter/kernels/ /home/biop/.local/share/jupyter/kernels/
 RUN rm -r -f /home/biop/.local/share/jupyter/kernels/brainrender \
     && rm -r -f /home/biop/.local/share/jupyter/kernels/devbio \
     && rm -r -f /home/biop/.local/share/jupyter/kernels/empanada \
-    && rm -r -f /home/biop/.local/share/jupyter/kernels/omnipose 
+    && rm -r -f /home/biop/.local/share/jupyter/kernels/omnipose \
+    && rm -r -f /home/biop/.local/share/jupyter/kernels/stardist 
+
     
 # # Make icons on desktop
 COPY icons/* /opt/icons/
